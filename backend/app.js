@@ -56,6 +56,22 @@ app.post("/api/stuff", (req, res, next) => {
     });
 });
 
+//Mise à jour Thing existant
+app.put("/api/stuff/:id", (req, res, next) => {
+  Thing.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
+    .then(() => res.status(200).json({ message: "Objet modifié" }))
+    .catch((error) => res.status(400).json({ error }));
+  next();
+});
+
+//Suppression d'un Thing
+app.delete("/api/stuff/:id", (req, res, next) => {
+  Thing.deleteOne({ _id: req.params.id })
+    .then(() => res.status(200).json({ message: "Objet supprimé !" }))
+    .catch((error) => res.status(400).json({ error }));
+});
+
+//Récupération d'un Thing spécifique
 app.get("/api/stuff/:id", (req, res, next) => {
   //segment dynamique
   Thing.findOne({ _id: req.params.id }) //trouver thing unique ayant le même _id que le paramètre de la requête
@@ -63,6 +79,7 @@ app.get("/api/stuff/:id", (req, res, next) => {
     .catch((error) => res.status(404).json({ error }));
 });
 
+//Récupération de la liste de Things
 app.get("/api/stuff", (req, res) => {
   Thing.find() //retourne un promise
     .then((things) => res.status(200).json(things))
