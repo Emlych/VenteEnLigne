@@ -14,7 +14,6 @@ const Thing = require("./models/Thing");
 
 //Eviter les erreurs de CORS
 app.use((req, res, next) => {
-  console.log("Test CORS");
   res.setHeader("Access-Control-Allow-Origin", "*"); //accéder à notre API depuis n'importe quelle origine
   res.setHeader(
     //ajout headers mentionnés aux requêtes envoyés vers notre API
@@ -40,7 +39,6 @@ app.use(express.json());
 //   next();
 // });
 app.post("/api/stuff", (req, res, next) => {
-  console.log("j'ai posté quelque chose");
   delete req.body._id;
   const thing = new Thing({
     //création de l'instance du modèle Thing
@@ -58,38 +56,19 @@ app.post("/api/stuff", (req, res, next) => {
     });
 });
 
-app.use("/api/stuff", (req, res) => {
-  console.log("Fourniture de la liste des articles");
-  const stuff = [
-    {
-      _id: "1er identifiant",
-      title: "Appareil photo Canon",
-      description: "Objectif grand angle",
-      imageUrl:
-        "https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg",
-      price: 4388,
-      userId: "JnooIII",
-    },
-    {
-      _id: "2e identifiant",
-      title: "Appareil photo Kodak",
-      description: "Appareil photo jetable",
-      imageUrl:
-        "https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg",
-      price: 485,
-      userId: "JnooIInnnI",
-    },
-    {
-      _id: "3e identifiant",
-      title: "Appareil photo Je sais pas",
-      description: "Appareil photo jetable",
-      imageUrl:
-        "https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg",
-      price: 6668,
-      userId: "aJnooIIndsannI",
-    },
-  ];
-  res.status(200).json(stuff); //code 200 pour une demande réussie
+app.get("/api/stuff/:id", (req, res, next) => {
+  //segment dynamique
+  Thing.findOne({ _id: req.params.id }) //trouver thing unique ayant le même _id que le paramètre de la requête
+    .then((thing) => res.status(200).json(thing)) //retourne ce thing dans le promise et envoyé au front-end
+    .catch((error) => res.status(404).json({ error }));
+});
+
+app.get("/api/stuff", (req, res) => {
+  Thing.find() //retourne un promise
+    .then((things) => res.status(200).json(things))
+    .catch((error) => {
+      res.status(400).json({ error });
+    });
 });
 
 module.exports = app;
