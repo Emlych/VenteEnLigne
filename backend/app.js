@@ -1,5 +1,16 @@
 const express = require("express");
+
+const mongoose = require("mongoose");
+mongoose
+  .connect(
+    "mongodb+srv://EmilyLD:p@nd0r@@cluster0.4hmbz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+    { useNewUrlParser: true, useUnifiedTopology: true }
+  )
+  .then(() => console.log("Connexion à MangoDB réussie"))
+  .catch(() => console.log("Connexion à MangoDB échouée."));
+
 const app = express();
+const Thing = require("./models/Thing");
 
 //Eviter les erreurs de CORS
 app.use((req, res, next) => {
@@ -20,7 +31,9 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-app.post("api/stuff", (req, res, next) => {
+//toujours placer post avant get. Sinon GET interceptera toutes les demandes envoyées à /api/stuff
+//Route Post permet de capturer les données postées
+app.post("/api/stuff", (req, res, next) => {
   console.log(req.body);
   console.log("route post");
   res.status(201).json({ message: "objet créé" }); //Requête réussie et ressource créée
@@ -28,6 +41,7 @@ app.post("api/stuff", (req, res, next) => {
 });
 
 app.use("/api/stuff", (req, res) => {
+  console.log("Fourniture de la liste des articles");
   const stuff = [
     {
       _id: "1er identifiant",
