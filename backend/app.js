@@ -33,11 +33,29 @@ app.use(express.json());
 
 //toujours placer post avant get. Sinon GET interceptera toutes les demandes envoyées à /api/stuff
 //Route Post permet de capturer les données postées
+// app.post("/api/stuff", (req, res, next) => {
+//   console.log(req.body);
+//   console.log("route post");
+//   res.status(201).json({ message: "objet créé" }); //Requête réussie et ressource créée
+//   next();
+// });
 app.post("/api/stuff", (req, res, next) => {
-  console.log(req.body);
-  console.log("route post");
-  res.status(201).json({ message: "objet créé" }); //Requête réussie et ressource créée
-  next();
+  console.log("j'ai posté quelque chose");
+  delete req.body._id;
+  const thing = new Thing({
+    //création de l'instance du modèle Thing
+    ...req.body,
+  });
+  thing
+    .save() //cette méthode renvoie un promise
+    .then(() => {
+      console.log("Thing pris en compte");
+      res.status(201).json({ message: "objet enregistré" });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(400).json({ error });
+    });
 });
 
 app.use("/api/stuff", (req, res) => {
