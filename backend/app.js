@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const stuffRoutes = require("./route/stuff");
 const userRoutes = require("./route/user");
+const path = require("path");
 
 const app = express();
 app.use(express.json());
@@ -29,6 +30,9 @@ app.use((req, res, next) => {
   );
   next();
 });
+
+//permettre accès aux ressources statiques type image:
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use("/api/stuff", stuffRoutes);
 app.use("/api/auth", userRoutes);

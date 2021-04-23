@@ -1,9 +1,17 @@
 //logique métier
 const Thing = require("../models/Thing");
+const fs = require("fs");
+const { json } = require("body-parser");
 
 exports.createThing = (req, res, next) => {
-  delete req.body._id;
-  const thing = new Thing({ ...req.body });
+  const thingObject = JSON.parse(req.body.thing);
+  delete thingObject._id;
+  const thing = new Thing({
+    ...thingObject,
+    imageUrl: `${req.protocol}://${req.get("host")}/images/${
+      req.file.filename
+    }`,
+  });
   thing
     .save()
     .then(() => res.status(201).json({ message: "Post saved" }))
@@ -21,7 +29,18 @@ exports.getOneThing = (req, res, next) => {
 };
 
 exports.modifyThing = (req, res, next) => {
-  Thing.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
+  const thingObject = req.file
+    ? {
+        ...JSON.parse(req.body.thing),
+        imageUrl: `${req.protocol}://${req.get("host")}/images/${
+          req.file.filename
+        }`,
+      }
+    : { ...req.body };
+  Thing.updateOne(
+    { _id: req.params.id },
+    { ...thingObject, _id: req.params.id }
+  )
     .then(() => {
       res.status(201).json({ message: "Thing updated" });
     })
@@ -31,13 +50,17 @@ exports.modifyThing = (req, res, next) => {
 };
 
 exports.deleteThing = (req, res, next) => {
-  Thing.deleteOne({ _id: req.params.id })
-    .then(() => {
-      res.status(200).json({ message: "Deleted" });
+  Thing.findOne({ _id: req.params.id })
+    .then((thing) => {
+      const filename = thing.imageUrl.split("/images/")[1];
+      //unlink : permet de supprimer des fichiers du système de fichiers
+      fs.unlink(`images/${filename}`, () => {
+        Thing.deleteOne({ _id: req.params.id })
+          .then(() => res.status(200).json({ message: "Objet supprimé !" }))
+          .catch((error) => res.status(400).json({ error }));
+      });
     })
-    .catch((error) => {
-      res.status(400).json({ error });
-    });
+    .catch((error) => res.status(500).json({ error }));
 };
 
 exports.getAllThings = (req, res, next) => {
